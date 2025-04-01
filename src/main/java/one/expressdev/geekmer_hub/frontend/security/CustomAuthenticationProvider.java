@@ -1,7 +1,8 @@
-package one.expressdev.geekmer_hub.frontend;
+package one.expressdev.geekmer_hub.frontend.security;
 
 import java.util.ArrayList;
 import java.util.List;
+import one.expressdev.geekmer_hub.frontend.TokenStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -10,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -19,10 +21,12 @@ import org.springframework.web.client.RestTemplate;
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private TokenStore tokenStore;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public CustomAuthenticationProvider(TokenStore tokenStore) {
         super();
         this.tokenStore = tokenStore;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     @Override
@@ -35,18 +39,21 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         final String password = authentication.getCredentials().toString();
         System.out.println("Password: " + password);
 
-        System.out.println("Custom Authentication Provider: " + name);
-        //log.info("Login Success");
+        // Hash password before sending
+        String hashedPassword = passwordEncoder.encode(password);
 
-        final MultiValueMap requestBody = new LinkedMultiValueMap<>();
+        System.out.println("Custom Authentication Provider: " + name);
+
+        final MultiValueMap<String, String> requestBody =
+            new LinkedMultiValueMap<>();
         requestBody.add("user", name);
-        requestBody.add("password", password);
+        requestBody.add("password", hashedPassword);
 
         System.out.println("Request Body: " + requestBody);
 
         final var restTemplate = new RestTemplate();
         final var responseEntity = restTemplate.postForEntity(
-            "http://localhost:8080/login",
+            "https://backend:8443/login", // Use HTTPS
             requestBody,
             String.class
         );
@@ -61,13 +68,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Invalid username or password");
         }
 
-        List authorities = new ArrayList<>();
+        List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 
         Authentication authenticatedToken =
             new UsernamePasswordAuthenticationToken(
                 name,
-                password,
+                hashedPassword, // Store hashed password
                 authorities
             );
 
@@ -75,7 +82,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    public boolean supports(Class authentication) {
+    public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
     }
 }
