@@ -47,13 +47,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         final MultiValueMap<String, String> requestBody =
             new LinkedMultiValueMap<>();
         requestBody.add("user", name);
-        requestBody.add("password", hashedPassword);
+        requestBody.add("password", password);
 
         System.out.println("Request Body: " + requestBody);
 
         final var restTemplate = new RestTemplate();
         final var responseEntity = restTemplate.postForEntity(
-            "https://backend:8443/login", // Use HTTPS
+            "http://backend:8080/login", // Use HTTPS
             requestBody,
             String.class
         );
