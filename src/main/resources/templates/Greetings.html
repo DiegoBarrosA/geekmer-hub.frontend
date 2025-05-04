@@ -1,18 +1,163 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>Getting Started: Serving Web Content</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <link rel="stylesheet" type="text/css" href="/style.css" />
-    </head>
-    <body>
-        <h1 th:text="|${name}!|"></h1>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geekmer-Hub - Tu comunidad gamer</title>
+    <link rel="stylesheet" type="text/css" href="/style.css" />
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #181818;
+            color: #e0e0e0;
+        }
+        header {
+            background-color: #282828;
+            color: #f0f0f0;
+            padding: 1em 0;
+            text-align: center;
+        }
+        nav {
+            background-color: #383838;
+            padding: 0.5em 0;
+            text-align: center;
+        }
+        nav a {
+            color: #d0d0d0;
+            text-decoration: none;
+            padding: 0.7em 1.5em;
+            display: inline-block;
+        }
+        nav a:hover {
+            background-color: #484848;
+        }
+        .hero {
+            background-image: url('/images/hero.jpg'); /* Reemplaza con la ruta de tu imagen */
+            background-size: cover;
+            color: #fff;
+            text-align: center;
+            padding: 4em 0;
+        }
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+        }
+        .hero p {
+            font-size: 1.2em;
+            margin-bottom: 1.5em;
+        }
+        .button {
+            display: inline-block;
+            background-color: #5cb85c;
+            color: #fff;
+            padding: 0.8em 1.5em;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #4cae4c;
+        }
+        .container {
+            max-width: 960px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #202020;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .section-title {
+            color: #f0f0f0;
+            border-bottom: 2px solid #555;
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+        .event-card {
+            background-color: #282828;
+            padding: 1em;
+            margin-bottom: 1em;
+            border-radius: 5px;
+        }
+        .event-card h3 {
+            color: #d0d0d0;
+            margin-top: 0;
+        }
+        .event-card p {
+            color: #b0b0b0;
+        }
+        .api-response {
+            background-color: #333;
+            color: #eee;
+            padding: 1em;
+            border-radius: 5px;
+            margin-bottom: 1em;
+            white-space: pre-wrap; /* Para preservar el formato del JSON */
+            overflow-x: auto; /* Para evitar desbordamiento horizontal */
+        }
+        footer {
+            background-color: #282828;
+            color: #b0b0b0;
+            text-align: center;
+            padding: 1em 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 th:text="|Geekmer-Hub - ¡Bienvenido/a, ${name}!|">Geekmer-Hub</h1>
+        <p>Tu punto de encuentro para todo lo geek y gamer</p>
+    </header>
 
+    <nav>
+        <a href="/">Inicio</a>
+        <a href="/foros">Foros</a>
+        <a href="/eventos">Eventos</a>
+        <a href="/comunidad">Comunidad</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/api-response">API Response</a>
+    </nav>
+
+    <section class="hero">
+        <h1 th:text="|Explora el universo geek, ${name}|">Explora el universo geek</h1>
+        <p>Descubre contenido exclusivo y conéctate con otros apasionados.</p>
+        <a href="/registro" class="button">Únete a la comunidad</a>
+    </section>
+
+    <div class="container">
         <div sec:authorize="isAuthenticated()">
-            <h1 th:inline="text">
-                Hola <span th:remove="tag" sec:authentication="name"></span>!
-            </h1>
-            <h2>Respuesta a llamada a API externa con token JWT</h2>
+            <h2 th:inline="text" class="section-title">Datos de la API, <span th:remove="tag" sec:authentication="name"></span>!</h2>
+            <p>Aquí podrás ver la respuesta de la API externa que requiere un token JWT para acceder.</p>
+            <div th:if="${apiResponse}" class="api-response">
+                <pre th:text="${apiResponse}"></pre>
+            </div>
+            <div th:unless="${apiResponse}">
+                <p>No hay datos disponibles de la API en este momento.</p>
+            </div>
         </div>
-    </body>
+        <div sec:authorize="!isAuthenticated()">
+            <h2 class="section-title">Acceso Restringido</h2>
+            <p>Debes iniciar sesión para ver la respuesta de la API externa.</p>
+            <a href="/login" class="button">Iniciar Sesión</a>
+        </div>
+
+        <section>
+            <h2 class="section-title">Últimas Noticias</h2>
+            <p>Mantente al día con las novedades del mundo de los videojuegos y la cultura geek.</p>
+            <ul>
+                <li>[Noticia 1]</li>
+                <li>[Noticia 2]</li>
+                <li>[Noticia 3]</li>
+            </ul>
+            <a href="/noticias" class="button">Ver más noticias</a>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Geekmer-Hub. Todos los derechos reservados.</p>
+    </footer>
+</body>
 </html>

@@ -1,18 +1,81 @@
-<!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>Getting Started: Serving Web Content</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <link rel="stylesheet" type="text/css" href="/style.css" />
-    </head>
-    <body>
-        <h1 th:text="|${name}!|"></h1>
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geekmer-Hub - Tu comunidad gamer</title>
+    <link rel="stylesheet" type="text/css" href="/style.css" />
+</head>
+<body>
+    <header>
+        <h1 th:text="|Geekmer-Hub - ¡Bienvenido/a, ${name}!|">Geekmer-Hub</h1>
+        <p>Tu punto de encuentro para todo lo geek y gamer</p>
+    </header>
 
+    <nav>
+        <a href="/">Inicio</a>
+        <a href="/foros">Foros</a>
+        <a href="/eventos">Eventos</a>
+        <a href="/comunidad">Comunidad</a>
+        <a href="/noticias">Noticias</a>
+    </nav>
+
+    <section class="hero">
+        <h1 th:text="|Conéctate con otros gamers, ${name}|">Conéctate con otros gamers</h1>
+        <p>Descubre foros de tus juegos favoritos y entérate de los próximos eventos sociales.</p>
+        <a href="/registro" class="button">Únete a la comunidad</a>
+    </section>
+
+    <div class="container">
         <div sec:authorize="isAuthenticated()">
-            <h1 th:inline="text">
-                Hola <span th:remove="tag" sec:authentication="name"></span>!
-            </h1>
-            <h2>Esta es casa</h2>
+            <h2 th:inline="text" class="section-title">Bienvenido de nuevo, <span th:remove="tag" sec:authentication="name"></span>!</h2>
+            <p>Explora las últimas discusiones y eventos en la comunidad.</p>
         </div>
-    </body>
+        <div sec:authorize="!isAuthenticated()">
+            <h2 class="section-title">¡Únete a la conversación!</h2>
+            <p>Regístrate o inicia sesión para participar en los foros y enterarte de los eventos.</p>
+            <a href="/login" class="button">Iniciar Sesión</a>
+            <a href="/registro" class="button">Registrarse</a>
+        </div>
+
+        <section>
+            <h2 class="section-title">Foros de Videojuegos</h2>
+            <p>Explora nuestros foros dedicados a una amplia variedad de videojuegos. ¡Comparte tus experiencias, estrategias y encuentra compañeros de juego!</p>
+            <ul>
+                <li><a href="/foros/accion">Foro de Acción</a></li>
+                <li><a href="/foros/rpg">Foro de RPG</a></li>
+                <li><a href="/foros/estrategia">Foro de Estrategia</a></li>
+                <li><a href="/foros/deportes">Foro de Deportes</a></li>
+                <li><a href="/foros">¡Y muchos más!</a></li>
+            </ul>
+            <a href="/foros" class="button">Ir a los foros</a>
+        </section>
+
+        <section>
+            <h2 class="section-title">Próximos Eventos Sociales</h2>
+            <p>No te pierdas los emocionantes eventos sociales que estamos organizando para la comunidad gamer de Geekmer-Hub.</p>
+            <div class="event-card">
+                <h3>[Nombre del Evento 1]</h3>
+                <p><strong>Fecha:</strong> [Fecha y Hora]</p>
+                <p><strong>Lugar:</strong> [Ubicación]</p>
+                <p><strong>Descripción:</strong> [Breve descripción del evento]</p>
+                <a href="/eventos/1" class="button">Más detalles</a>
+            </div>
+
+            <div class="event-card">
+                <h3>[Nombre del Evento 2]</h3>
+                <p><strong>Fecha:</strong> [Fecha y Hora]</p>
+                <p><strong>Lugar:</strong> [Ubicación]</p>
+                <p><strong>Descripción:</strong> [Breve descripción del evento]</p>
+                <a href="/eventos/2" class="button">Más detalles</a>
+            </div>
+
+            <a href="/eventos" class="button">Ver todos los eventos</a>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Geekmer-Hub. Todos los derechos reservados.</p>
+    </footer>
+</body>
 </html>

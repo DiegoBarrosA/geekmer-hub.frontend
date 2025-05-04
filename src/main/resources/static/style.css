@@ -1,0 +1,89 @@
+  body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #181818;
+            color: #e0e0e0;
+        }
+        header {
+            background-color: #282828;
+            color: #f0f0f0;
+            padding: 1em 0;
+            text-align: center;
+        }
+        nav {
+            background-color: #383838;
+            padding: 0.5em 0;
+            text-align: center;
+        }
+        nav a {
+            color: #d0d0d0;
+            text-decoration: none;
+            padding: 0.7em 1.5em;
+            display: inline-block;
+        }
+        nav a:hover {
+            background-color: #484848;
+        }
+        .hero {
+            background-image: url('/images/hero.jpg'); /* Reemplaza con la ruta de tu imagen */
+            background-size: cover;
+            color: #fff;
+            text-align: center;
+            padding: 4em 0;
+        }
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+        }
+        .hero p {
+            font-size: 1.2em;
+            margin-bottom: 1.5em;
+        }
+        .button {
+            display: inline-block;
+            background-color: #5cb85c;
+            color: #fff;
+            padding: 0.8em 1.5em;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #4cae4c;
+        }
+        .container {
+            max-width: 960px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #202020;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .section-title {
+            color: #f0f0f0;
+            border-bottom: 2px solid #555;
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+        .event-card {
+            background-color: #282828;
+            padding: 1em;
+            margin-bottom: 1em;
+            border-radius: 5px;
+        }
+        .event-card h3 {
+            color: #d0d0d0;
+            margin-top: 0;
+        }
+        .event-card p {
+            color: #b0b0b0;
+        }
+        footer {
+            background-color: #282828;
+            color: #b0b0b0;
+            text-align: center;
+            padding: 1em 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
