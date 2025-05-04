@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-// import org.springframework.context.annotation.Import; // Only if needed for SecurityConfig
+ 
 import org.springframework.http.*;
-import org.springframework.security.test.context.support.WithMockUser; // For bypassing security
+import org.springframework.security.test.context.support.WithMockUser;  
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException; // Import RestClientException
+import org.springframework.web.client.RestClientException;  
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,23 +20,23 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.containsString;
-// import static org.hamcrest.Matchers.is; // Can remove if not used directly
+ 
 
-@WebMvcTest(HomeController.class) // Test only the HomeController web layer
-@WithMockUser // Run tests with a mock authenticated user to bypass Spring Security
-// @Import(SecurityConfig.class) // Example: Uncomment and replace if you have a specific SecurityConfig needed
+@WebMvcTest(HomeController.class)  
+@WithMockUser  
+ 
 class HomeControllerTest {
 
     @Autowired
-    private MockMvc mockMvc; // For performing mock HTTP requests
+    private MockMvc mockMvc;  
 
-    @MockBean // Mock the TokenStore dependency
+    @MockBean  
     private TokenStore tokenStore;
 
-    @MockBean // Mock the RestTemplate dependency (works because HomeController uses injection)
+    @MockBean  
     private RestTemplate restTemplate;
 
-    // Constants for test values
+     
     private static final String MOCK_TOKEN = "Bearer test-token-123";
     private static final String GREETINGS_BACKEND_URL = "http://backend:8080/greetings";
     private static final String DEFAULT_HOME_NAME = "Seguridad y Calidad en el Desarrollo";
@@ -44,21 +44,21 @@ class HomeControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Reset mocks or perform setup before each test
-        // Mock the token store to return a valid token by default for most tests
+         
+         
         when(tokenStore.getToken()).thenReturn(MOCK_TOKEN);
     }
 
-    // --- Tests for /home endpoint ---
+     
 
     @Test
     @DisplayName("GET /home should return Home view with default name")
     void home_shouldReturnHomeViewWithDefaultName() throws Exception {
         mockMvc.perform(get("/home"))
-                .andExpect(status().isOk()) // Expect HTTP 200 OK
-                .andExpect(view().name("Home")) // Expect view name "Home"
-                .andExpect(model().attributeExists("name")) // Expect "name" attribute
-                .andExpect(model().attribute("name", DEFAULT_HOME_NAME)); // Expect default value
+                .andExpect(status().isOk())  
+                .andExpect(view().name("Home"))  
+                .andExpect(model().attributeExists("name"))  
+                .andExpect(model().attribute("name", DEFAULT_HOME_NAME));  
     }
 
     @Test
@@ -68,10 +68,10 @@ class HomeControllerTest {
         mockMvc.perform(get("/home").param("name", testName))
                 .andExpect(status().isOk())
                 .andExpect(view().name("Home"))
-                .andExpect(model().attribute("name", testName)); // Expect provided value
+                .andExpect(model().attribute("name", testName));  
     }
 
-    // --- Tests for / endpoint ---
+     
 
     @Test
     @DisplayName("GET / should return Home view with default name")
@@ -83,7 +83,7 @@ class HomeControllerTest {
                 .andExpect(model().attribute("name", DEFAULT_HOME_NAME));
     }
 
-    // --- Tests for /greetings endpoint ---
+     
 
     @Test
     @DisplayName("GET /greetings (success) should return Greetings view with backend response")
@@ -94,20 +94,20 @@ class HomeControllerTest {
                 .queryParam("name", requestName)
                 .toUriString();
 
-        // Mock the successful RestTemplate call
+         
         ResponseEntity<String> mockResponseEntity = new ResponseEntity<>(backendResponse, HttpStatus.OK);
         when(restTemplate.exchange(
                 eq(expectedUrl),
                 eq(HttpMethod.GET),
-                any(HttpEntity.class), // Check headers more strictly if needed
+                any(HttpEntity.class),  
                 eq(String.class)))
                 .thenReturn(mockResponseEntity);
 
         mockMvc.perform(get("/greetings").param("name", requestName))
                 .andExpect(status().isOk())
-                .andExpect(view().name("Greetings")) // Expect the Greetings view
+                .andExpect(view().name("Greetings"))  
                 .andExpect(model().attributeExists("name"))
-                .andExpect(model().attribute("name", backendResponse)); // Expect backend response in model
+                .andExpect(model().attribute("name", backendResponse));  
     }
 
     @Test
@@ -115,10 +115,10 @@ class HomeControllerTest {
     void greeting_defaultName_success_shouldReturnGreetingView() throws Exception {
         String backendResponse = "Hello " + DEFAULT_GREETING_NAME + " from Backend!";
         String expectedUrl = UriComponentsBuilder.fromHttpUrl(GREETINGS_BACKEND_URL)
-                .queryParam("name", DEFAULT_GREETING_NAME) // Use default name
+                .queryParam("name", DEFAULT_GREETING_NAME)  
                 .toUriString();
 
-        // Mock the successful RestTemplate call
+         
         ResponseEntity<String> mockResponseEntity = new ResponseEntity<>(backendResponse, HttpStatus.OK);
          when(restTemplate.exchange(
                  eq(expectedUrl),
@@ -127,22 +127,22 @@ class HomeControllerTest {
                  eq(String.class)))
                  .thenReturn(mockResponseEntity);
 
-        mockMvc.perform(get("/greetings")) // No name parameter, should use default
+        mockMvc.perform(get("/greetings"))  
                 .andExpect(status().isOk())
-                .andExpect(view().name("Greetings")) // Expect the Greetings view
+                .andExpect(view().name("Greetings"))  
                 .andExpect(model().attribute("name", backendResponse));
     }
 
     @Test
     @DisplayName("GET /greetings with name longer than 100 chars should return ErrorPage")
     void greeting_nameTooLong_shouldReturnErrorPage() throws Exception {
-        String longName = "a".repeat(101); // 101 characters
+        String longName = "a".repeat(101);  
 
         mockMvc.perform(get("/greetings").param("name", longName))
-                .andExpect(status().isOk()) // Controller handles error, returns 200 for view
+                .andExpect(status().isOk())  
                 .andExpect(view().name("ErrorPage"))
                 .andExpect(model().attributeExists("error"))
-                // --- CORRECTED ASSERTION ---
+                 
                 .andExpect(model().attribute("error", "Invalid name parameter: Name cannot be empty and must be 100 characters or less."));
     }
 
@@ -153,9 +153,9 @@ class HomeControllerTest {
          String expectedUrl = UriComponentsBuilder.fromHttpUrl(GREETINGS_BACKEND_URL)
                  .queryParam("name", requestName)
                  .toUriString();
-        HttpStatus errorStatus = HttpStatus.UNAUTHORIZED; // Example: 401
+        HttpStatus errorStatus = HttpStatus.UNAUTHORIZED;  
 
-        // Mock RestTemplate to throw HttpClientErrorException
+         
         when(restTemplate.exchange(
                 eq(expectedUrl),
                 eq(HttpMethod.GET),
@@ -164,10 +164,10 @@ class HomeControllerTest {
                 .thenThrow(new HttpClientErrorException(errorStatus, "Auth Failed"));
 
         mockMvc.perform(get("/greetings").param("name", requestName))
-                .andExpect(status().isOk()) // Controller handles error, returns 200 for view
+                .andExpect(status().isOk())  
                 .andExpect(view().name("ErrorPage"))
                 .andExpect(model().attributeExists("error"))
-                // Check the specific error message set in the catch block
+                 
                 .andExpect(model().attribute("error", "Error fetching greetings: Backend returned status " + errorStatus));
     }
 
@@ -178,9 +178,9 @@ class HomeControllerTest {
          String expectedUrl = UriComponentsBuilder.fromHttpUrl(GREETINGS_BACKEND_URL)
                  .queryParam("name", requestName)
                  .toUriString();
-         HttpStatus errorStatus = HttpStatus.INTERNAL_SERVER_ERROR; // Example: 500
+         HttpStatus errorStatus = HttpStatus.INTERNAL_SERVER_ERROR;  
 
-         // Mock RestTemplate to throw a 5xx HttpClientErrorException
+          
          when(restTemplate.exchange(
                  eq(expectedUrl),
                  eq(HttpMethod.GET),
@@ -190,10 +190,10 @@ class HomeControllerTest {
 
 
          mockMvc.perform(get("/greetings").param("name", requestName))
-                 .andExpect(status().isOk()) // Controller handles error, returns 200 for view
+                 .andExpect(status().isOk())  
                  .andExpect(view().name("ErrorPage"))
                  .andExpect(model().attributeExists("error"))
-                 // Check the specific error message set in the catch block
+                  
                  .andExpect(model().attribute("error", "Error fetching greetings: Backend returned status " + errorStatus));
      }
 
@@ -206,7 +206,7 @@ class HomeControllerTest {
                 .queryParam("name", requestName)
                 .toUriString();
 
-        // Mock RestTemplate to throw a generic RestClientException (e.g., network issue)
+         
         when(restTemplate.exchange(
                 eq(expectedUrl),
                 eq(HttpMethod.GET),
@@ -215,22 +215,22 @@ class HomeControllerTest {
                 .thenThrow(new RestClientException("Could not connect"));
 
         mockMvc.perform(get("/greetings").param("name", requestName))
-                .andExpect(status().isOk()) // Controller handles error, returns 200 for view
+                .andExpect(status().isOk())  
                 .andExpect(view().name("ErrorPage"))
                 .andExpect(model().attributeExists("error"))
-                // Check the specific error message set in the RestClientException catch block
+                 
                 .andExpect(model().attribute("error", "Could not connect to the backend service. Please try again later."));
     }
 
     @Test
     @DisplayName("GET /greetings when unexpected internal exception occurs should return ErrorPage")
     void greeting_unexpectedException_shouldReturnErrorPage() throws Exception {
-        String requestName = "Frank"; // Changed name to avoid potential mock conflicts if reusing "Dave"
+        String requestName = "Frank";  
         String expectedUrl = UriComponentsBuilder.fromHttpUrl(GREETINGS_BACKEND_URL)
                 .queryParam("name", requestName)
                 .toUriString();
 
-        // Mock RestTemplate to throw a generic RuntimeException
+         
         when(restTemplate.exchange(
                 eq(expectedUrl),
                 eq(HttpMethod.GET),
@@ -239,10 +239,10 @@ class HomeControllerTest {
                 .thenThrow(new RuntimeException("Something broke internally"));
 
         mockMvc.perform(get("/greetings").param("name", requestName))
-                .andExpect(status().isOk()) // Controller handles error, returns 200 for view
+                .andExpect(status().isOk())  
                 .andExpect(view().name("ErrorPage"))
                 .andExpect(model().attributeExists("error"))
-                // --- CORRECTED ASSERTION ---
+                 
                 .andExpect(model().attribute("error", "An unexpected internal error occurred."));
     }
 
@@ -250,37 +250,37 @@ class HomeControllerTest {
     @Test
     @DisplayName("GET /greetings when no token is available (success) should return Greetings view")
     void greeting_noToken_shouldStillCallBackend() throws Exception {
-        // Override default setup: Simulate TokenStore returning null
+         
         when(tokenStore.getToken()).thenReturn(null);
 
         String requestName = "Eve";
-        String backendResponse = "Hello Eve (no token provided)!"; // Example backend response
+        String backendResponse = "Hello Eve (no token provided)!";  
         String expectedUrl = UriComponentsBuilder.fromHttpUrl(GREETINGS_BACKEND_URL)
                 .queryParam("name", requestName)
                 .toUriString();
 
-        // Mock the successful RestTemplate call (backend handles null token)
+         
         ResponseEntity<String> mockResponseEntity = new ResponseEntity<>(backendResponse, HttpStatus.OK);
 
-        // Expect the call with an HttpEntity that has a null or absent Authorization header
-        // Using ArgumentCaptor is more robust if needed, but any() is often sufficient
+         
+         
         when(restTemplate.exchange(
                 eq(expectedUrl),
                 eq(HttpMethod.GET),
-                any(HttpEntity.class), // Check entity details if strict header check needed
+                any(HttpEntity.class),  
                 eq(String.class)))
                 .thenReturn(mockResponseEntity);
 
 
         mockMvc.perform(get("/greetings").param("name", requestName))
                 .andExpect(status().isOk())
-                .andExpect(view().name("Greetings")) // Expect the Greetings view
+                .andExpect(view().name("Greetings"))  
                 .andExpect(model().attribute("name", backendResponse));
 
-        // Optional: Verify exchange was called, potentially capture HttpEntity arg
-        // ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
-        // verify(restTemplate).exchange(eq(expectedUrl), eq(HttpMethod.GET), entityCaptor.capture(), eq(String.class));
-        // assertNull(entityCaptor.getValue().getHeaders().getFirst("Authorization"));
+         
+         
+         
+         
     }
 @Test
     @DisplayName("GET /greetings when backend returns non-2xx success status (e.g., 3xx) should return ErrorPage")
@@ -289,10 +289,10 @@ class HomeControllerTest {
         String expectedUrl = UriComponentsBuilder.fromHttpUrl(GREETINGS_BACKEND_URL)
                 .queryParam("name", requestName)
                 .toUriString();
-        HttpStatus non2xxStatus = HttpStatus.FOUND; // Example: 302 Found
+        HttpStatus non2xxStatus = HttpStatus.FOUND;  
 
-        // Mock the RestTemplate call to return a non-2xx success response
-        ResponseEntity<String> mockResponseEntity = new ResponseEntity<>("Redirecting...", non2xxStatus); // Body might be irrelevant here
+         
+        ResponseEntity<String> mockResponseEntity = new ResponseEntity<>("Redirecting...", non2xxStatus);  
         when(restTemplate.exchange(
                 eq(expectedUrl),
                 eq(HttpMethod.GET),
@@ -301,10 +301,10 @@ class HomeControllerTest {
                 .thenReturn(mockResponseEntity);
 
         mockMvc.perform(get("/greetings").param("name", requestName))
-                .andExpect(status().isOk()) // Controller handles it, returns 200 for view
-                .andExpect(view().name("ErrorPage")) // Expect the ErrorPage view
+                .andExpect(status().isOk())  
+                .andExpect(view().name("ErrorPage"))  
                 .andExpect(model().attributeExists("error"))
-                // Check the specific error message set in the 'else' block
+                 
                 .andExpect(model().attribute("error", "Error fetching greetings: Received status " + non2xxStatus));
     }
 }

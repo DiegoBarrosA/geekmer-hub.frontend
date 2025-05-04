@@ -11,23 +11,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationServiceException; // Import needed exception
+import org.springframework.security.authentication.AuthenticationServiceException;  
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority; // Import GrantedAuthority
+import org.springframework.security.core.GrantedAuthority;  
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder; // Import PasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder;  
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException; // Import specific exception
+import org.springframework.web.client.HttpClientErrorException;  
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collection; // Import Collection for helper class
-import java.util.List; // Import List
+import java.util.Collection;  
+import java.util.List;  
 
-// import static org.assertj.core.api.Assertions.assertThat; // Can remove if only using JUnit assertions
+ 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,20 +37,21 @@ import static org.mockito.Mockito.*;
  * Unit tests for CustomAuthenticationProvider.
  * Assumes RestTemplate and PasswordEncoder are injected.
  */
-@ExtendWith(MockitoExtension.class) // Initialize mocks
+@ExtendWith(MockitoExtension.class)  
 class CustomAuthenticationProviderTest {
 
-    @Mock // Mock the TokenStore dependency
+    @Mock  
     private TokenStore tokenStore;
 
-    @Mock // Mock the RestTemplate dependency
+    @Mock  
     private RestTemplate restTemplate;
 
-    @Mock // Mock the PasswordEncoder dependency
-    private PasswordEncoder passwordEncoder; // Mocking even if logic changes, for completeness
+    @Mock  
+    private PasswordEncoder passwordEncoder;  
 
-    @InjectMocks // Inject mocks into the provider instance
+    @InjectMocks  
     private CustomAuthenticationProvider customAuthenticationProvider;
+
 
     private final String backendLoginUrl = "http://backend:8080/login";
     private final String testUser = "testuser";
@@ -59,10 +60,10 @@ class CustomAuthenticationProviderTest {
 
     @BeforeEach
     void setUp() {
-        // Optional: Reset mocks if needed, though @ExtendWith handles basic setup
+         
     }
 
-    // --- Tests for supports() method ---
+     
 
     @Test
     @DisplayName("supports() should return true for UsernamePasswordAuthenticationToken")
@@ -73,15 +74,15 @@ class CustomAuthenticationProviderTest {
     @Test
     @DisplayName("supports() should return false for other Authentication types")
     void supports_otherAuthenticationType_shouldReturnFalse() {
-        assertFalse(customAuthenticationProvider.supports(TestingAuthenticationToken.class)); // Example other type
+        assertFalse(customAuthenticationProvider.supports(TestingAuthenticationToken.class));  
     }
 
-    // --- Tests for authenticate() method ---
+     
 
     @Test
     @DisplayName("authenticate() success should call backend, store token, and return authenticated token")
     void authenticate_success_shouldReturnAuthenticatedToken() {
-        // Arrange
+         
         UsernamePasswordAuthenticationToken inputAuth =
             new UsernamePasswordAuthenticationToken(testUser, testPassword);
         ResponseEntity<String> mockResponseEntity = new ResponseEntity<>(testToken, HttpStatus.OK);
@@ -89,10 +90,10 @@ class CustomAuthenticationProviderTest {
                 eq(backendLoginUrl), any(MultiValueMap.class), eq(String.class)))
                 .thenReturn(mockResponseEntity);
 
-        // Act
+         
         Authentication resultAuth = customAuthenticationProvider.authenticate(inputAuth);
 
-        // Assert
+         
         ArgumentCaptor<MultiValueMap<String, String>> bodyCaptor = ArgumentCaptor.forClass(MultiValueMap.class);
         verify(restTemplate).postForEntity(eq(backendLoginUrl), bodyCaptor.capture(), eq(String.class));
         assertEquals(testUser, bodyCaptor.getValue().getFirst("user"));
@@ -102,8 +103,8 @@ class CustomAuthenticationProviderTest {
         assertTrue(resultAuth.isAuthenticated());
         assertEquals(testUser, resultAuth.getName());
 
-        // --- CORRECTED ASSERTION ---
-        // Standard practice is to clear credentials after successful authentication
+         
+         
         assertNull(resultAuth.getCredentials(), "Credentials should be erased (null) after successful authentication");
 
         assertNotNull(resultAuth.getAuthorities());
@@ -114,22 +115,22 @@ class CustomAuthenticationProviderTest {
     @Test
     @DisplayName("authenticate() when backend returns non-OK status should throw BadCredentialsException")
     void authenticate_backendReturnsNonOk_shouldThrowBadCredentials() {
-        // Arrange
+         
         UsernamePasswordAuthenticationToken inputAuth =
             new UsernamePasswordAuthenticationToken(testUser, testPassword);
-        // Use a different non-OK status for variety
+         
         HttpStatus nonOkStatus = HttpStatus.FORBIDDEN;
         ResponseEntity<String> mockResponseEntity = new ResponseEntity<>("Access Denied", nonOkStatus);
         when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
                 .thenReturn(mockResponseEntity);
 
-        // Act & Assert
+         
         BadCredentialsException exception = assertThrows(BadCredentialsException.class, () -> {
             customAuthenticationProvider.authenticate(inputAuth);
         });
 
-        // --- CORRECTED ASSERTION ---
-        // Verify the specific exception message from the provider including the status
+         
+         
         assertEquals("Invalid username or password (backend status: " + nonOkStatus + ")", exception.getMessage());
         verify(tokenStore, never()).setToken(anyString());
     }
@@ -137,20 +138,20 @@ class CustomAuthenticationProviderTest {
      @Test
      @DisplayName("authenticate() when backend call throws HttpClientErrorException should throw BadCredentialsException")
      void authenticate_backendThrowsHttpClientError_shouldThrowBadCredentials() {
-         // Arrange
+          
          UsernamePasswordAuthenticationToken inputAuth =
              new UsernamePasswordAuthenticationToken(testUser, testPassword);
          HttpStatus errorStatus = HttpStatus.UNAUTHORIZED;
          when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
                  .thenThrow(new HttpClientErrorException(errorStatus, "Unauthorized"));
 
-         // Act & Assert
+          
          BadCredentialsException exception = assertThrows(BadCredentialsException.class, () -> {
              customAuthenticationProvider.authenticate(inputAuth);
          }, "Expected BadCredentialsException when backend throws HttpClientErrorException");
 
-         // --- CORRECTED ASSERTION ---
-         // Check the specific message from the catch block in the refactored provider including the status
+          
+          
          assertEquals("Invalid username or password (backend error: " + errorStatus + ")", exception.getMessage());
          verify(tokenStore, never()).setToken(anyString());
      }
@@ -159,18 +160,18 @@ class CustomAuthenticationProviderTest {
     @Test
     @DisplayName("authenticate() when backend call throws RestClientException should throw BadCredentialsException")
     void authenticate_backendThrowsRestClientException_shouldThrowBadCredentials() {
-        // Arrange
+         
         UsernamePasswordAuthenticationToken inputAuth =
             new UsernamePasswordAuthenticationToken(testUser, testPassword);
         when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
                 .thenThrow(new RestClientException("Connection refused"));
 
-        // Act & Assert
+         
         BadCredentialsException exception = assertThrows(BadCredentialsException.class, () -> {
             customAuthenticationProvider.authenticate(inputAuth);
         });
 
-        // Verify exception message (this one was likely already correct)
+         
         assertEquals("Unable to contact authentication service.", exception.getMessage());
         verify(tokenStore, never()).setToken(anyString());
     }
@@ -178,19 +179,19 @@ class CustomAuthenticationProviderTest {
     @Test
     @DisplayName("authenticate() when backend returns OK but empty token should throw BadCredentialsException")
     void authenticate_backendReturnsOkEmptyToken_shouldThrowBadCredentials() {
-        // Arrange
+         
         UsernamePasswordAuthenticationToken inputAuth =
             new UsernamePasswordAuthenticationToken(testUser, testPassword);
-        ResponseEntity<String> mockResponseEntity = new ResponseEntity<>(null, HttpStatus.OK); // Null body
+        ResponseEntity<String> mockResponseEntity = new ResponseEntity<>(null, HttpStatus.OK);  
         when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
                 .thenReturn(mockResponseEntity);
 
-        // Act & Assert
+         
         BadCredentialsException exception = assertThrows(BadCredentialsException.class, () -> {
             customAuthenticationProvider.authenticate(inputAuth);
         });
 
-        // Verify exception message (this one was likely already correct)
+         
         assertEquals("Authentication service returned an invalid token.", exception.getMessage());
         verify(tokenStore, never()).setToken(anyString());
     }
@@ -198,26 +199,26 @@ class CustomAuthenticationProviderTest {
      @Test
      @DisplayName("authenticate() when unexpected internal exception occurs should throw AuthenticationServiceException")
      void authenticate_unexpectedException_shouldThrowAuthenticationServiceException() {
-         // Arrange
+          
          UsernamePasswordAuthenticationToken inputAuth =
              new UsernamePasswordAuthenticationToken(testUser, testPassword);
          RuntimeException internalError = new RuntimeException("Something else broke");
          when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
-                 .thenThrow(internalError); // Throw a generic exception
+                 .thenThrow(internalError);  
 
-         // Act & Assert
+          
          AuthenticationServiceException exception = assertThrows(AuthenticationServiceException.class, () -> {
              customAuthenticationProvider.authenticate(inputAuth);
          });
 
-         // Verify exception message and cause (this one was likely already correct)
+          
          assertEquals("Unexpected error during authentication.", exception.getMessage());
-         assertSame(internalError, exception.getCause()); // Check that the original exception is nested
+         assertSame(internalError, exception.getCause());  
          verify(tokenStore, never()).setToken(anyString());
      }
 
 
-    // Helper class for testing supports() method
+     
     private static class TestingAuthenticationToken implements Authentication {
         @Override public Collection<? extends GrantedAuthority> getAuthorities() { return null; }
         @Override public Object getCredentials() { return null; }
